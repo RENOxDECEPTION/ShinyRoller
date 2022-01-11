@@ -23,7 +23,7 @@ from PIL import Image
 import io
 
 import time
-import random
+#import random
 
 '''Save Image of Pokemon to file'''
 import os
@@ -32,6 +32,7 @@ capture = False
 found = False
 scanned = False
 filename = None
+reconnect = None
 counter = 0
 
 class AdjustmentBars():
@@ -45,8 +46,9 @@ class AdjustmentBars():
         self.sh = 'S High'
         self.vl = 'V Low'
         self.vh = 'V High'
-        cv2.namedWindow(self.barsWindow, cv2.WINDOW_AUTOSIZE)
-        cv2.resizeWindow(self.barsWindow, 300,350)
+        cv2.namedWindow(self.barsWindow, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.barsWindow, 100,200)
+        cv2.moveWindow(self.barsWindow,0,0)
         # create the sliders
         self.trackbar()
         # set initial values for sliders
@@ -75,6 +77,7 @@ class Video():
         self.webcam = cv2.VideoCapture(0)
         #self.webcam = cv2.VideoCapture('Video Examples/Shiny Dialga Brilliant Diamond.avi')
         self.adjbars = AdjustmentBars()
+        
         print("Video Drawing...")
         
         while True:
@@ -150,8 +153,8 @@ class Video():
                 filename += "/images/"
                 filename += str(counter)
                 filename += ".jpg"
-                print(os.getcwd())
-                print(filename)
+                #print(os.getcwd())
+                #print(filename)
 
                 exists = os.path.exists(filename)
                 if not exists:
@@ -169,9 +172,13 @@ class Video():
             #cv2.imshow("original",frame)
             self.lastthree()
             numpy_horizontal_concat = np.concatenate((frame,untouchedframe,maskedFrame), axis=1)
-            numpy_horizontal_concat2 = np.concatenate((numpy_horizontal_concat,self.pastone,self.pasttwo, self.pastthree),axis=1)
             
-            numpy_vertical_concat = np.concatenate((numpy_horizontal_concat,numpy_horizontal_concat2), axis = 0)
+            
+            im_h = cv2.hconcat([self.pastthree,self.pasttwo,self.pastone])
+            #cv2.imshow('=-Shiny Roller-= Past 3', im_h)
+            #numpy_horizontal_concat2 = np.concatenate((self.pastone,self.pasttwo, self.pastthree),axis=1)
+            
+            numpy_vertical_concat = np.concatenate((numpy_horizontal_concat,im_h), axis = 0)
             
             cv2.imshow('=-Shiny Roller-=', numpy_vertical_concat)
             cv2.moveWindow('=-Shiny Roller-=',460,120)
@@ -184,32 +191,42 @@ class Video():
         
         filename = os.getcwd()
         filename += "/images/"
-        filename1,filename2,filename3 = filename
+        filename1 = filename
+        filename2 = filename
+        filename3 = filename
         
-        filename1 +=counter
+        counter1 = counter - 1
+        filename1 += str(counter1)
         filename1 +=".jpg"
-        counter2 = counter
-        counter2 -= 1
-        filename2 += counter2
+        counter2 = counter1
+        counter2 = counter2 - 1
+        filename2 += str(counter2)
         filename2 +=".jpg"
-        counter2 -= 2
-        filename3 += counter2
+        counter3 = counter2 - 1
+        filename3 += str(counter3)
         filename3 +=".jpg"
         
-        self.pastone = cv2.imread(filename1)
-        self.pasttwo = cv2.imread(filename2)
-        self.pastthree = cv2.imread(filename3)
+        #wwlllprint(filename1, filename2, filename3)
         
-        self.pastone = cv2.cvtColor(self.pastone, cv2.COLOR_BGR2HSV)
-        self.pasttwo = cv2.cvtColor(self.pasttwo, cv2.COLOR_BGR2HSV)
-        self.pastthree = cv2.cvtColor(self.pastthree, cv2.COLOR_BGR2HSV)
-          
+        self.pastone = cv2.imread(filename1)
+        self.pastone = cv2.putText(self.pastone, str(counter1), (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        self.pasttwo = cv2.imread(filename2)
+        self.pasttwo = cv2.putText(self.pasttwo, str(counter2), (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        self.pastthree = cv2.imread(filename3)  
+        self.pastthree = cv2.putText(self.pastthree, str(counter3), (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        
         
         dimension = (480,270)
         
-        self.pastone = cv2.resize(self.pastone, dimension,interpolation = cv2.INTER_AREA)
-        self.pasttwo = cv2.resize(self.pasttwo, dimension,interpolation = cv2.INTER_AREA)     
-        self.pastthree = cv2.resize(self.pastthree, dimension,interpolation = cv2.INTER_AREA)             
+
+
+        #self.pastone = cv2.cvtColor(self.pastone, cv2.COLOR_BGR2HSV)
+        #self.pasttwo = cv2.cvtColor(self.pasttwo, cv2.COLOR_BGR2HSV)
+        #self.pastthree = cv2.cvtColor(self.pastthree, cv2.COLOR_BGR2HSV)
+        
+        #self.pastone = cv2.resize(self.pastone, dimension,interpolation = cv2.INTER_AREA)
+        #self.pasttwo = cv2.resize(self.pasttwo, dimension,interpolation = cv2.INTER_AREA)     
+        #self.pastthree = cv2.resize(self.pastthree, dimension,interpolation = cv2.INTER_AREA)             
             
 class Keyboard:
     
@@ -235,6 +252,8 @@ class Keyboard:
         self.URL = "http://127.0.0.1:8000"
         self.keyboard = Controller()       
         self.driver.get(self.URL)
+        self.driver.set_window_size(400,400)
+        self.driver.set_window_position(0,0)
         self.driver.switch_to.window(self.driver.current_window_handle)
         element = self.driver.find_element_by_id("controller-selection")
 
@@ -264,7 +283,7 @@ class Keyboard:
 
 
     def dialgamacro(self):
-        global capture, found, scanned
+        global capture, found, scanned, reconnect
         
         #self.thread = threading.Thread(target=self.initial, args=())
         #self.thread.daemon = True
@@ -272,18 +291,32 @@ class Keyboard:
         
         while self.ready is not True:
             time.sleep(1)
+        element = self.driver.find_element_by_id("status-indicator-text")
         
+        if re.search("connecting", element.text, re.IGNORECASE) or re.search("loading", element.text, re.IGNORECASE):
+            reconnect = True
+            
         print("Macro Started...")
         # Press and release space
         self.keyboard.press('l') #press A to select game
         time.sleep(0.3)
         self.keyboard.release('l')
-        time.sleep(0.75)
+        time.sleep(1)
         self.keyboard.press('w') #press w to avoid updating prompt
         time.sleep(0.3)
         self.keyboard.release('w')
-        time.sleep(0.75)
+        
+        time.sleep(0.2)
+        
+        self.keyboard.press('w') #press w to avoid updating prompt
+        time.sleep(0.3)
+        self.keyboard.release('w')
+        time.sleep(1)
 
+        self.keyboard.press('l') #press w to start software
+        time.sleep(0.3)
+        self.keyboard.release('l')
+        time.sleep(0.2)
         self.keyboard.press('l') #press w to start software
         time.sleep(0.3)
         self.keyboard.release('l')
@@ -356,7 +389,7 @@ class Keyboard:
 
             
             self.keyboard.press('[') #press home to return to main menu.
-            time.sleep(0.3)
+            time.sleep(0.1)
             self.keyboard.release('[')
 
             time.sleep(1.2)
@@ -365,11 +398,11 @@ class Keyboard:
             time.sleep(0.3)
             self.keyboard.release('i')
 
-            time.sleep(0.75)
+            time.sleep(1.25)
 
 
             self.keyboard.press('l') #press A to close software.
-            time.sleep(0.3)
+            time.sleep(0.4)
             self.keyboard.release('l')
 
             time.sleep(1)
@@ -381,11 +414,11 @@ class Keyboard:
 
 def main():
     
-    global found, counter
+    global found, counter, reconnect
     
     loadcounter()
 
-    print("Defining Keyboard...")
+    print("Defining Keyboard Object...")
     kb1 = Keyboard()
     print("Starting Video Thread...")
     t1= threading.Thread(target = videocall)
@@ -393,10 +426,22 @@ def main():
     #t2= threading.Thread(target = mqtt)
 
     while found == False:
-        kb1.dialgamacro()
-        counter += 1
-        mqtt()
-        print("Counter: ",counter)
+        
+        if reconnect is not True:
+            kb1.dialgamacro()
+            counter += 1
+            mqtt()
+            print("Counter: ",counter)
+        else:
+            print("ERROR FOUND: REPORTING TO MQTT")
+            mqtt()
+            print("Attempting to Restart Keyboard Object...")
+            print("Killing Keyboard Object...")
+            del kb1        
+            time.sleep(1)
+            print("Starting Keyboard Object...")
+            kb1 = Keyboard()
+            reconnect = None
         
          
     
@@ -412,7 +457,7 @@ def videocall():
     cam1.release_video()
 
 def mqtt():
-    global counter, filename
+    global counter, filename, reconnect
     
     #counter += 1
     broker="10.0.0.75"
@@ -433,7 +478,10 @@ def mqtt():
     time.sleep(2)
     print("Publishing...")
     if found is False:
-        client.publish("shinyroller", counter)#publish
+        if reconnect is True:
+            client.publish("shinyroller", "error")#publish
+        else:
+            client.publish("shinyroller", counter)#publish
 
     else:    
         client.publish("shinyroller", "found")#publish
