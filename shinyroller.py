@@ -239,12 +239,11 @@ class Keyboard:
         
     
     def initial(self): 
-        #path to seleniumn profile:
-        #profile_path = r'C:\Users\John\AppData\Roaming\Mozilla\Firefox\Profiles\x1f79v3u.NewProfile'
         options=Options()
-        #options.set_preference('profile', profile_path)
-        #path to geckodriver executable.
+        
+        #windows
         #service = Service(r'C:\geckodriver\geckodriver.exe')
+        #linux
         service = Service(r'/home/john/nxbt/geckodriver')
 
         self.driver = Firefox(service=service, options=options)
